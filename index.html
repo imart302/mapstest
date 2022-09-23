@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Display a map on a webpage</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 80%;
+      }
+      .row-line {
+        display: flex;
+        flex-direction: row;
+        margin-left: 5px;
+        align-items: center;
+        height: fit-content;
+      }
+      .color-d {
+        width: 15px;
+        height: 15px;
+        margin-right: 10px;
+      }
+      p {
+        height: fit-content;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" style="width: 80%;"></div>
+    <div id="lines" style=" display: none; position:absolute; left: 40px; top: 40px; padding: 10px; width: fit-content; height: fit-content; z-index: 3; background-color: rgb(250, 250, 250);">
+      <div class="row-line">
+        Rutas del metrobús
+      </div>
+      <hr>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #3399ff"></div>
+        <p>Linea 1</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #b3ffff;"></div>
+        <p>Linea 2</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #a3a3c2;"></div>
+        <p>Linea 3</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #ff80df;"></div>
+        <p>Linea 4</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #ff1a1a"></div>
+        <p>Linea 5</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #39e600;"></div>
+        <p>Linea 6</p>
+      </div>
+      <div class="row-line">
+        <div class="color-d" style="background-color: #ff8000;"></div>
+        <p>Linea 7</p>
+      </div>
+
+      <br>
+      <div class="row-line">
+        Filtro
+      </div>
+      <hr>
+      <div class="row-line">
+        <input id="metrobus-cb1" type="checkbox" checked>
+        <label for="metrobus-cb1">Linea 1</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb2" type="checkbox" checked>
+        <label for="metrobus-cb2">Linea 2</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb3" type="checkbox" checked>
+        <label for="metrobus-cb3">Linea 3</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb4" type="checkbox" checked>
+        <label for="metrobus-cb4">Linea 4</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb5" type="checkbox" checked>
+        <label for="metrobus-cb5">Linea 5</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb6" type="checkbox" checked>
+        <label for="metrobus-cb6">Linea 6</label>
+      </div>
+      <div class="row-line">
+        <input id="metrobus-cb7" type="checkbox" checked>
+        <label for="metrobus-cb7">Linea 7</label>
+      </div>
+
+    <script>
+
+      function randomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = "";
+        for (var i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        console.log()
+        return color;
+      }
+
+      const lineColor = {
+        '1': '#3399ff',
+        '2': '#b3ffff',
+        '3': '#a3a3c2',
+        '4': '#ff80df',
+        '5': '#ff1a1a',
+        '6': '#39e600',
+        '7': '#ff8000'
+      }
+
+      const lineRoutes = {
+        '1': [],
+        '2': [],
+        '3': [],
+        '4': [],
+        '5': [],
+        '6': [],
+        '7': []
+      }
+
+      const lineMarkers = {
+        '1': [],
+        '2': [],
+        '3': [],
+        '4': [],
+        '5': [],
+        '6': [],
+        '7': []
+      }
+
+      fetch('./metrobus_estaciones.json')
+        .then( (resp) => resp.json())
+        .then( (json) => {
+            console.log(json);
+        });
+    
+
+      mapboxgl.accessToken =
+        'pk.eyJ1IjoiaXZhbjMwMiIsImEiOiJjbDhldTk0cGkwMXEzM3ducG92b3FrZ3QwIn0.FB7-C-3lG6QS1egkXObZrQ';
+      const map = new mapboxgl.Map({
+        container: 'map', 
+        style: 'mapbox://styles/mapbox/streets-v11', 
+        center: [-99.13225, 19.43255], 
+        zoom: 11, 
+        projection: 'globe', 
+      });
+
+      map.on('style.load', () => {
+        map.setFog({}); 
+      });
+
+      map.on('load', () => {
+
+        fetch('./metrobus_estaciones.json')
+        .then( (resp) => resp.json())
+        .then( (json) => {
+            json.features.forEach( (feat) => {
+              const marker = new mapboxgl.Marker({
+                color: lineColor[Number.parseInt(feat.properties.LINEA).toString()]
+              })
+                .setLngLat(feat.geometry.coordinates)
+                .addTo(map);
+              
+              lineMarkers[Number.parseInt(feat.properties.LINEA).toString()].push(marker);
+              
+            });
+        });
+        
+        console.log('loading lines');
+
+        fetch('./metrobus_lineas.json')
+          .then( (resp) => resp.json() )
+          .then( (json) => {
+            json.features.forEach( (route, index) => {
+              lineRoutes[route.properties.LINEA].push(`Route${index}`);
+              map.addSource(`Route${index}`, {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: route.geometry
+                }
+              });
+              map.addLayer({
+                id: `Route${index}`,
+                type: 'line',
+                source: `Route${index}`,
+                layout: {
+                  'line-join': 'round',
+                  'line-cap': 'round'
+                },
+                paint: {
+                  'line-color': lineColor[route.properties.LINEA],
+                  'line-width': 8
+                }
+              });
+            });
+
+            document.getElementById('lines').style.display='inline';
+            const cbLine1 = document.getElementById('metrobus-cb1');
+            const cbLine2 = document.getElementById('metrobus-cb2');
+            const cbLine3 = document.getElementById('metrobus-cb3');
+            const cbLine4 = document.getElementById('metrobus-cb4');
+            const cbLine5 = document.getElementById('metrobus-cb5');
+            const cbLine6 = document.getElementById('metrobus-cb6');
+            const cbLine7 = document.getElementById('metrobus-cb7');
+
+            const cbLines = [
+              cbLine1, cbLine2, cbLine3, cbLine4, cbLine5, cbLine6, cbLine7
+            ];
+
+            cbLines.forEach( (cbLine, index) => {
+              cbLine.addEventListener( 'change', (event) => {
+                if(event.currentTarget.checked){
+                  const markers = lineMarkers[(index+1).toString()];
+                  markers.forEach( marker => marker.addTo(map));
+                  const routes = lineRoutes[(index+1).toString()];
+                  routes.forEach( (route) => {
+                    map.setLayoutProperty(route, 'visibility', 'visible');
+                  });
+                }
+                else{
+                  const markers = lineMarkers[(index+1).toString()];
+                  markers.forEach( marker =>  marker.remove());
+                  const routes = lineRoutes[(index+1).toString()];
+                  routes.forEach( (route) => {
+                    map.setLayoutProperty(route, 'visibility', 'none');
+                  });
+                }
+              });
+            });
+
+          })
+          .catch( (error) => {
+            console.log(error);
+          });
+      });
+    </script>
+  </body>
+</html>
